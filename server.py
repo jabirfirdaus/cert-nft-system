@@ -17,7 +17,7 @@ w3 = Web3(Web3.HTTPProvider("https://eth-sepolia.g.alchemy.com/v2/3Hqma1gJQiIPes
 
 PRIVATE_KEY = " "
 REKTOR_WALLET = w3.eth.account.from_key(PRIVATE_KEY).address
-ALAMAT_KONTRAK = w3.to_checksum_address(" ")
+ALAMAT_KONTRAK = w3.to_checksum_address("0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0")
 
 cert_abi = [
     {
