@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Rektor - Ijazah Web3</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #38bdf8;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: #0ea5e9;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #0284c7;
+        }
+
+        button:disabled {
+            background-color: #475569;
+            cursor: not-allowed;
+        }
+
+        #statusBox {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .sukses {
+            background-color: #064e3b;
+            border: 1px solid #10b981;
+            color: #34d399;
+        }
+
+        .loading {
+            background-color: #451a03;
+            border: 1px solid #f59e0b;
+            color: #fbbf24;
+        }
+
+        .error {
+            background-color: #7f1d1d;
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        a {
+            color: #60a5fa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2> Terbitkan Ijazah NFT</h2>
+        <form id="mintForm">
+            <div class="form-group">
+                <label>NIM Mahasiswa:</label>
+                <input type="text" id="nim" placeholder="Contoh: 240511067" required>
+            </div>
+            <div class="form-group">
+                <label>Alamat Dompet Mahasiswa:</label>
+                <input type="text" id="wallet" placeholder="0x..." value="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+                    required>
+            </div>
+            <div class="form-group">
+                <label>Upload File Ijazah (PDF/TXT):</label>
+                <input type="file" id="fileDoc" required>
+            </div>
+            <button type="submit" id="btnSubmit">Terbitkan ke Blockchain</button>
+        </form>
+
+        <div id="statusBox"></div>
+    </div>
+
+    <script>
+        document.getElementById('mintForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Mencegah halaman refresh
+
+            const btn = document.getElementById('btnSubmit');
+            const statusBox = document.getElementById('statusBox');
+            const fileInput = document.getElementById('fileDoc').files[0];
+            const nim = document.getElementById('nim').value;
+            const wallet = document.getElementById('wallet').value;
+
+            // Tampilan Loading
+            btn.disabled = true;
+            btn.innerText = "Sedang Memproses ke Jaringan...";
+            statusBox.className = "loading";
+            statusBox.style.display = "block";
+            statusBox.innerHTML = "Menghubungi Server Python & IPFS...";
+
+            // Menyiapkan paket data untuk dikirim ke Python Flask
+            const formData = new FormData();
+            formData.append("fileIjazah", fileInput);
+            formData.append("nimMahasiswa", nim);
+            formData.append("dompetMahasiswa", wallet);
+
+            try {
+                // Nembak API ke Python
+                const response = await fetch("http://localhost:5000/api/terbitkan", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Tampilan Sukses!
+                    statusBox.className = "sukses";
+                    statusBox.innerHTML = `
+                    <strong> ${result.pesan}</strong><br><br>
+                    <strong>IPFS CID:</strong> <br>
+                    <a href="https://gateway.pinata.cloud/ipfs/${result.ipfs}" target="_blank">${result.ipfs}</a><br><br>
+                    <strong>Tx Hash:</strong> <br>
+                    ${result.hash_transaksi}
+                `;
+                } else {
+                    throw new Error(result.pesan);
+                }
+            } catch (error) {
+                // Tampilan Error
+                statusBox.className = "error";
+                statusBox.innerHTML = `<strong>Gagal:</strong> ${error.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Terbitkan ke Blockchain";
+            }
+        });
+    </script>
+
+</body>
+
+</html>
