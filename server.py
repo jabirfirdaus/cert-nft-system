@@ -19,6 +19,7 @@ PRIVATE_KEY = " "
 REKTOR_WALLET = w3.eth.account.from_key(PRIVATE_KEY).address
 ALAMAT_KONTRAK = w3.to_checksum_address("0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0")
 
+# Kamus Fungsi (ABI) Lengkap
 cert_abi = [
     {
         "inputs": [
@@ -29,6 +30,20 @@ cert_abi = [
         "name": "issueCertificate",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{"internalType": "uint256", "name": "certificateId", "type": "uint256"}],
+        "name": "verifyOwner",
+        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [{"internalType": "uint256", "name": "certificateId", "type": "uint256"}],
+        "name": "getCertificateData",
+        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+        "stateMutability": "view",
         "type": "function"
     }
 ]
@@ -106,6 +121,35 @@ def terbitkan_api():
         if os.path.exists(temp_filename): os.remove(temp_filename)
         return jsonify({"status": "error", "pesan": str(e)}), 500
 
+# 4. JEMBATAN API UNTUK VERIFIKASI (PORTAL HRD)
+@app.route('/api/verifikasi/<int:nim>', methods=['GET'])
+def verifikasi_api(nim):
+    try:
+        # Panggil fungsi Read-Only dari Smart Contract (gak butuh gas fee/tanda tangan)
+        owner_wallet = cert_contract.functions.verifyOwner(nim).call()
+        document_uri = cert_contract.functions.getCertificateData(nim).call()
+        
+        # Bersihin prefix 'ipfs://' biar gampang dibikin link
+        ipfs_hash = document_uri.replace("ipfs://", "")
+
+        return jsonify({
+            "status": "sukses",
+            "pesan": "Sertifikat Asli Ditemukan!",
+            "pemilik": owner_wallet,
+            "ipfs_hash": ipfs_hash,
+            "link_dokumen": f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}"
+        }), 200
+
+    except Exception as e:
+
+        print(f"ERROR VERIFIKASI: {str(e)}")
+        # Kalau NIM gak ada di blockchain, Smart Contract bakal nge-revert dan masuk ke sini
+        return jsonify({
+            "status": "error", 
+            "pesan": "Sertifikat Palsu atau NIM Tidak Terdaftar!"
+        }), 404
+
 if __name__ == '__main__':
     print("API Backend Server Menyala di http://localhost:5000")
+    
     app.run(port=5000, debug=True)
