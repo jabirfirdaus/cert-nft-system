@@ -152,4 +152,5 @@ def verifikasi_api(nim):
 
 if __name__ == '__main__':
     print("API Backend Server Menyala di http://localhost:5000")
+    
     app.run(port=5000, debug=True)
