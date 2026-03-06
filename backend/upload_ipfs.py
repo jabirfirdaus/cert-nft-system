@@ -1,10 +1,13 @@
 import requests
 import os # Tambahin ini di baris paling atas (di bawah import requests)
+from dotenv import load_dotenv # Tambahin ini juga buat baca file .env
+
+load_dotenv()
 
 # 1. SETUP KUNCI GUDANG (PINATA API)
 # Paste API Key dan Secret lo di sini (jangan sampai kebalik ya)
-PINATA_API_KEY = " "
-PINATA_SECRET_KEY = " "
+PINATA_API_KEY = os.getenv("PINATA_API_KEY")
+PINATA_SECRET_KEY = os.getenv("PINATA_SECRET_KEY")
 
 # 2. TARGET FILE YANG MAU DI-UPLOAD
 # Pastikan file ini beneran ada di folder yang sama dengan script Python lo
