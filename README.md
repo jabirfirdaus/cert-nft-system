@@ -1,66 +1,34 @@
-## Foundry
+# Certificate NFT System (CertNFT)
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+![Solidity](https://img.shields.io/badge/Solidity-e6e6e6?style=for-the-badge&logo=solidity&logoColor=black)
+![Foundry](https://img.shields.io/badge/Foundry-white?style=for-the-badge)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
-Foundry consists of:
+A professional-grade, decentralized certificate issuance system leveraging the Ethereum blockchain. This project utilizes ERC-721 Non-Fungible Tokens (NFTs) to provide immutable, publicly verifiable, and secure digital credentials for graduates, event attendees, or achievement earners.
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Architecture & Core Features
 
-## Documentation
+* **Immutable Credentials:** Once minted, the certificate data is permanently secured on the blockchain, eliminating the risk of forgery.
+* **OpenZeppelin Integration:** Built upon battle-tested OpenZeppelin ERC-721 contracts to ensure maximum security and industry-standard compliance.
+* **On-Chain Verification:** Anyone can verify the authenticity and ownership of a certificate without relying on a centralized database.
+* **Gas Optimized:** Smart contract logic is streamlined to ensure minimal gas consumption during the batch-minting or individual issuance processes.
 
-https://book.getfoundry.sh/
+## Live Deployment
 
-## Usage
+The smart contract has been successfully deployed and verified on the blockchain.
 
-### Build
+* **Network:** [Sepolia Testnet]
+* **Contract Address:** `[0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0]`
+* **Block Explorer:** [https://sepolia.etherscan.io/address/0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0]
 
-```shell
-$ forge build
-```
+## Getting Started
 
-### Test
+### Prerequisites
+* [Foundry](https://getfoundry.sh/) installed on your local machine.
 
-```shell
-$ forge test
-```
+### Installation & Setup
 
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/jabirfirdaus/cert-nft-system.git](https://github.com/jabirfirdaus/cert-nft-system.git)
+   cd cert-nft-system
