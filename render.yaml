@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ijazahchain-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app
+    envVars:
+      - key: PINATA_API_KEY
+        sync: false
+      - key: PINATA_SECRET_KEY
+        sync: false
+      - key: ALCHEMY_URL
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false

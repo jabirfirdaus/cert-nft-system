@@ -191,5 +191,7 @@ def verifikasi_api(nim):
 
 
 if __name__ == '__main__':
-    print(f"Server aktif -> http://localhost:5000")
-    app.run(port=5000, debug=True)
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_ENV') != 'production'
+    print(f"Server aktif -> http://0.0.0.0:{port}")
+    app.run(host='0.0.0.0', port=port, debug=debug)
