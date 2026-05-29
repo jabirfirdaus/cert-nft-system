@@ -1,52 +1,33 @@
 import os
-import uuid
 import json
+import uuid
 import requests
-from datetime import datetime
 from web3 import Web3
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# ============================================================
-# IjazahChain — Backend API Server v2.0
-# Author  : Jabir Firdaus
-# GitHub  : github.com/jabirfirdaus
-# ============================================================
-
 app = Flask(__name__)
 CORS(app)
 load_dotenv()
 
-# ==========================================
-# KONFIGURASI — Baca dari .env
-# ==========================================
 PINATA_API_KEY    = os.getenv("PINATA_API_KEY")
 PINATA_SECRET_KEY = os.getenv("PINATA_SECRET_KEY")
-ALCHEMY_URL       = os.getenv("ALCHEMY_URL", "https://eth-sepolia.g.alchemy.com/v2/3Hqma1gJQiIPesucX5YAi")
+ALCHEMY_URL       = os.getenv("ALCHEMY_URL")
 PRIVATE_KEY       = os.getenv("PRIVATE_KEY")
-ALAMAT_KONTRAK    = os.getenv("ALAMAT_KONTRAK", "0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0")
 
-# ==========================================
-# DETEKSI VERSI CONTRACT (V1 lama vs V2 baru)
-# ==========================================
-# V1 (deployed): issueCertificate(address, uint256, string)  → NIM sebagai ID
-# V2 (baru)    : issueCertificate(string, uint256, address, string, string) → nama + foto
-#
-# Kita default ke V1 jika contract address yang dipakai adalah address lama,
-# dan V2 jika sudah di-deploy ulang.
-#
-# Cara override: tambahkan CONTRACT_VERSION=2 di .env
+w3 = Web3(Web3.HTTPProvider(ALCHEMY_URL))
 
-CONTRACT_VERSION = int(os.getenv("CONTRACT_VERSION", "1"))
+REKTOR_WALLET  = w3.eth.account.from_key(PRIVATE_KEY).address
+ALAMAT_KONTRAK = w3.to_checksum_address("0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0")
+NAMA_KAMPUS    = "Universitas Muhammadiyah Cirebon"
 
-# ABI V1 (contract lama yang sudah deployed)
-cert_abi_v1 = [
+cert_abi = [
     {
         "inputs": [
             {"internalType": "address", "name": "studentWallet", "type": "address"},
-            {"internalType": "uint256", "name": "certificateId",  "type": "uint256"},
-            {"internalType": "string",  "name": "documentURI",    "type": "string"}
+            {"internalType": "uint256", "name": "certificateId", "type": "uint256"},
+            {"internalType": "string",  "name": "documentURI",   "type": "string"}
         ],
         "name": "issueCertificate",
         "outputs": [],
@@ -68,347 +49,147 @@ cert_abi_v1 = [
         "type": "function"
     }
 ]
+cert_contract = w3.eth.contract(address=ALAMAT_KONTRAK, abi=cert_abi)
 
-# ABI V2 (contract baru dengan field nama + foto)
-cert_abi_v2 = [
-    {
-        "inputs": [
-            {"internalType": "string",  "name": "namaMahasiswa", "type": "string"},
-            {"internalType": "uint256", "name": "nim",           "type": "uint256"},
-            {"internalType": "address", "name": "walletAddr",    "type": "address"},
-            {"internalType": "string",  "name": "ipfsHash",      "type": "string"},
-            {"internalType": "string",  "name": "fotoIpfsHash",  "type": "string"}
-        ],
-        "name": "issueCertificate",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [{"internalType": "uint256", "name": "nim", "type": "uint256"}],
-        "name": "verifyCertificate",
-        "outputs": [
-            {"internalType": "string",  "name": "namaMahasiswa",  "type": "string"},
-            {"internalType": "uint256", "name": "nimResult",       "type": "uint256"},
-            {"internalType": "address", "name": "walletMahasiswa", "type": "address"},
-            {"internalType": "string",  "name": "ipfsHash",        "type": "string"},
-            {"internalType": "string",  "name": "fotoIpfsHash",    "type": "string"},
-            {"internalType": "uint256", "name": "tanggalTerbit",   "type": "uint256"},
-            {"internalType": "bool",    "name": "isValid",          "type": "bool"}
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "totalIssued",
-        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-        "stateMutability": "view",
-        "type": "function"
-    }
-]
 
-# ==========================================
-# KONEKSI WEB3
-# ==========================================
-w3 = Web3(Web3.HTTPProvider(ALCHEMY_URL))
-REKTOR_WALLET = w3.eth.account.from_key(PRIVATE_KEY).address
-
-cert_abi = cert_abi_v2 if CONTRACT_VERSION == 2 else cert_abi_v1
-cert_contract = w3.eth.contract(
-    address=w3.to_checksum_address(ALAMAT_KONTRAK),
-    abi=cert_abi
-)
-
-print(f"[IjazahChain] Contract V{CONTRACT_VERSION} di {ALAMAT_KONTRAK}")
-print(f"[IjazahChain] Admin Wallet: {REKTOR_WALLET}")
-
-# ==========================================
-# HELPER: Upload File ke Pinata IPFS
-# ==========================================
-def upload_to_ipfs(file_path, filename="file"):
-    url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
+def upload_file_to_ipfs(file_path):
+    url     = "https://api.pinata.cloud/pinning/pinFileToIPFS"
     headers = {
-        "pinata_api_key": PINATA_API_KEY,
+        "pinata_api_key":        PINATA_API_KEY,
         "pinata_secret_api_key": PINATA_SECRET_KEY
     }
-    try:
-        with open(file_path, 'rb') as f:
-            res = requests.post(url, files={'file': (filename, f)}, headers=headers, timeout=30)
-        if res.status_code == 200:
-            return res.json()['IpfsHash']
-        else:
-            print(f"[IPFS ERROR] {res.status_code}: {res.text}")
-            return None
-    except Exception as e:
-        print(f"[IPFS EXCEPTION] {e}")
-        return None
+    with open(file_path, 'rb') as f:
+        res = requests.post(url, files={'file': f}, headers=headers)
+    if res.status_code == 200:
+        return res.json()['IpfsHash']
+    raise Exception(f"Gagal upload file ke IPFS: {res.text}")
 
-# ==========================================
-# HELPER: Mint ke Blockchain (V1 — contract lama)
-# ==========================================
-def mint_v1(nim, wallet_addr, ipfs_uri):
-    """V1: issueCertificate(address wallet, uint256 nim, string uri)"""
-    student_address = w3.to_checksum_address(wallet_addr)
-    nonce     = w3.eth.get_transaction_count(REKTOR_WALLET)
-    gas_price = w3.eth.gas_price
 
-    tx = cert_contract.functions.issueCertificate(
-        student_address,
-        int(nim),
-        ipfs_uri
-    ).build_transaction({
-        'chainId': 11155111,
-        'gas': 500000,
-        'gasPrice': gas_price,
-        'nonce': nonce,
-    })
+def upload_json_to_ipfs(data: dict):
+    url     = "https://api.pinata.cloud/pinning/pinJSONToIPFS"
+    headers = {
+        "pinata_api_key":        PINATA_API_KEY,
+        "pinata_secret_api_key": PINATA_SECRET_KEY,
+        "Content-Type":          "application/json"
+    }
+    res = requests.post(url, json={"pinataContent": data}, headers=headers)
+    if res.status_code == 200:
+        return res.json()['IpfsHash']
+    raise Exception(f"Gagal upload JSON ke IPFS: {res.text}")
 
-    signed = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
-    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
-    return w3.to_hex(tx_hash)
 
-# ==========================================
-# HELPER: Mint ke Blockchain (V2 — contract baru)
-# ==========================================
-def mint_v2(nama, nim, wallet_addr, ipfs_hash, foto_hash):
-    """V2: issueCertificate(string nama, uint256 nim, address wallet, string meta, string foto)"""
-    student_address = w3.to_checksum_address(wallet_addr)
-    nonce     = w3.eth.get_transaction_count(REKTOR_WALLET)
-    gas_price = w3.eth.gas_price
+def fetch_metadata_from_ipfs(cid: str):
+    url = f"https://gateway.pinata.cloud/ipfs/{cid}"
+    res = requests.get(url, timeout=10)
+    if res.status_code == 200:
+        return res.json()
+    return None
+
+
+def mint_certificate(student_wallet, nim, metadata_cid):
+    document_uri    = f"ipfs://{metadata_cid}"
+    student_address = w3.to_checksum_address(student_wallet)
+    nonce           = w3.eth.get_transaction_count(REKTOR_WALLET)
+    gas_price       = w3.eth.gas_price
 
     tx = cert_contract.functions.issueCertificate(
-        nama, int(nim), student_address, ipfs_hash, foto_hash
+        student_address, int(nim), document_uri
     ).build_transaction({
-        'chainId': 11155111,
-        'gas': 500000,
+        'chainId':  11155111,
+        'gas':      500000,
         'gasPrice': gas_price,
-        'nonce': nonce,
+        'nonce':    nonce,
     })
 
-    signed = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
-    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+    signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
+    tx_hash   = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
     return w3.to_hex(tx_hash)
 
-# ==========================================
-# ENDPOINT 1: TERBITKAN IJAZAH
-# POST /api/terbitkan
-# ==========================================
+
 @app.route('/api/terbitkan', methods=['POST'])
 def terbitkan_api():
     file   = request.files.get('fileIjazah')
-    nama   = request.form.get('namaMahasiswa', '').strip()
-    nim    = request.form.get('nimMahasiswa',  '').strip()
-    wallet = request.form.get('dompetMahasiswa', '').strip()
+    nim    = request.form.get('nimMahasiswa')
+    wallet = request.form.get('dompetMahasiswa')
+    nama   = request.form.get('namaMahasiswa')
 
-    # Validasi
-    if not file:
-        return jsonify({"status": "error", "pesan": "File ijazah wajib diupload!"}), 400
-    if not nama:
-        return jsonify({"status": "error", "pesan": "Nama mahasiswa wajib diisi!"}), 400
-    if not nim or not nim.isdigit():
-        return jsonify({"status": "error", "pesan": "NIM wajib diisi dan harus berupa angka!"}), 400
-    if not wallet or not wallet.startswith('0x'):
-        return jsonify({"status": "error", "pesan": "Wallet address tidak valid!"}), 400
+    if not all([file, nim, wallet, nama]):
+        return jsonify({"status": "error", "pesan": "Data tidak lengkap!"}), 400
 
-    ext = os.path.splitext(file.filename)[1] if file.filename else '.pdf'
-    temp_filename = f"temp_{uuid.uuid4().hex}{ext}"
+    safe_filename = f"temp_{uuid.uuid4().hex}_{os.path.basename(file.filename)}"
+    file.save(safe_filename)
 
     try:
-        file.save(temp_filename)
+        doc_cid = upload_file_to_ipfs(safe_filename)
 
-        # 1. Upload foto/PDF ke IPFS
-        foto_hash = upload_to_ipfs(temp_filename, file.filename or "ijazah.pdf")
-        if not foto_hash:
-            raise Exception("Gagal upload file ke IPFS. Cek API Pinata.")
-
-        # 2. Buat metadata JSON & upload ke IPFS
         metadata = {
-            "name": f"Ijazah — {nama}",
-            "description": f"Ijazah resmi UMC untuk {nama} (NIM: {nim})",
-            "image": f"ipfs://{foto_hash}",
-            "attributes": [
-                {"trait_type": "Nama Mahasiswa", "value": nama},
-                {"trait_type": "NIM",            "value": nim},
-                {"trait_type": "Universitas",    "value": "Universitas Muhammadiyah Cirebon"},
-                {"trait_type": "Wallet",         "value": wallet},
-                {"trait_type": "Author",         "value": "Jabir Firdaus"}
-            ]
+            "nama":         nama,
+            "nim":          nim,
+            "institusi":    NAMA_KAMPUS,
+            "document_cid": doc_cid,
+            "document_url": f"https://gateway.pinata.cloud/ipfs/{doc_cid}"
         }
-        meta_filename = f"meta_{uuid.uuid4().hex}.json"
-        with open(meta_filename, 'w', encoding='utf-8') as mf:
-            json.dump(metadata, mf, ensure_ascii=False, indent=2)
+        metadata_cid = upload_json_to_ipfs(metadata)
 
-        meta_hash = upload_to_ipfs(meta_filename, "metadata.json")
-        os.remove(meta_filename)
+        tx_hash = mint_certificate(wallet, nim, metadata_cid)
 
-        if not meta_hash:
-            raise Exception("Gagal upload metadata ke IPFS.")
-
-        # 3. Mint ke blockchain (V1 atau V2)
-        if CONTRACT_VERSION == 2:
-            tx_hash = mint_v2(nama, nim, wallet, meta_hash, foto_hash)
-        else:
-            # V1: simpan metadata URI, nama & foto dicatat di IPFS metadata saja
-            ipfs_uri = f"ipfs://{meta_hash}"
-            tx_hash  = mint_v1(nim, wallet, ipfs_uri)
+        os.remove(safe_filename)
 
         return jsonify({
-            "status": "sukses",
-            "pesan": f"Ijazah {nama} berhasil diterbitkan!",
-            "nama":           nama,
-            "nim":            nim,
-            "wallet":         wallet,
-            "ipfs_foto":      foto_hash,
-            "ipfs_meta":      meta_hash,
-            "hash_transaksi": tx_hash,
-            "link_etherscan": f"https://sepolia.etherscan.io/tx/{tx_hash}",
-            "link_ipfs":      f"https://gateway.pinata.cloud/ipfs/{foto_hash}"
+            "status":         "sukses",
+            "pesan":          "Ijazah Berhasil Diterbitkan!",
+            "metadata_cid":   metadata_cid,
+            "doc_cid":        doc_cid,
+            "hash_transaksi": tx_hash
         }), 200
 
     except Exception as e:
+        if os.path.exists(safe_filename):
+            os.remove(safe_filename)
         return jsonify({"status": "error", "pesan": str(e)}), 500
 
-    finally:
-        if os.path.exists(temp_filename):
-            os.remove(temp_filename)
 
-# ==========================================
-# ENDPOINT 2: VERIFIKASI IJAZAH
-# GET /api/verifikasi/<nim>
-# ==========================================
 @app.route('/api/verifikasi/<int:nim>', methods=['GET'])
 def verifikasi_api(nim):
     try:
-        if CONTRACT_VERSION == 2:
-            result = cert_contract.functions.verifyCertificate(nim).call()
-            nama_mhs    = result[0]
-            nim_result  = result[1]
-            wallet      = result[2]
-            ipfs_meta   = result[3]
-            ipfs_foto   = result[4]
-            timestamp   = result[5]
-            is_valid    = result[6]
+        owner_wallet = cert_contract.functions.verifyOwner(nim).call()
+        document_uri = cert_contract.functions.getCertificateData(nim).call()
 
-            if not is_valid:
-                return jsonify({"status": "error", "pesan": "Ijazah tidak valid!"}), 404
+        metadata_cid = document_uri.replace("ipfs://", "")
+        metadata     = fetch_metadata_from_ipfs(metadata_cid)
 
-            tanggal = datetime.utcfromtimestamp(timestamp).strftime('%d %B %Y, %H:%M UTC')
-
+        if not metadata:
             return jsonify({
-                "status":          "sukses",
-                "pesan":           "✅ Ijazah ASLI Terverifikasi di Blockchain!",
-                "nama_mahasiswa":  nama_mhs,
-                "nim":             nim_result,
-                "wallet_mahasiswa": wallet,
-                "tanggal_terbit":  tanggal,
-                "ipfs_meta":       ipfs_meta,
-                "ipfs_foto":       ipfs_foto,
-                "link_foto":       f"https://gateway.pinata.cloud/ipfs/{ipfs_foto}",
+                "status":        "sukses",
+                "pesan":         "Sertifikat Asli Ditemukan!",
+                "nama":          "Data lama (tidak tersedia)",
+                "nim":           str(nim),
+                "institusi":     NAMA_KAMPUS,
+                "pemilik":       owner_wallet,
+                "doc_url":       f"https://gateway.pinata.cloud/ipfs/{metadata_cid}",
+                "etherscan_url": f"https://sepolia.etherscan.io/address/{owner_wallet}"
             }), 200
-
-        else:
-            # V1: ambil owner + URI, lalu coba fetch metadata dari IPFS
-            owner_wallet = cert_contract.functions.verifyOwner(nim).call()
-            document_uri = cert_contract.functions.getCertificateData(nim).call()
-            ipfs_hash    = document_uri.replace("ipfs://", "")
-
-            # Coba ambil metadata JSON dari IPFS untuk mendapatkan nama & foto
-            nama_mhs   = f"(NIM: {nim})"
-            ipfs_foto  = ipfs_hash
-            tanggal    = "—"
-
-            try:
-                meta_res = requests.get(
-                    f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}",
-                    timeout=10
-                )
-                if meta_res.status_code == 200:
-                    meta     = meta_res.json()
-                    nama_mhs = meta.get("attributes", [{}])[0].get("value", nama_mhs) \
-                               if meta.get("attributes") else nama_mhs
-                    # Ambil nama dari attributes
-                    for attr in meta.get("attributes", []):
-                        if attr.get("trait_type") == "Nama Mahasiswa":
-                            nama_mhs = attr.get("value", nama_mhs)
-                    # Ambil foto dari image field
-                    img_uri = meta.get("image", "")
-                    if img_uri.startswith("ipfs://"):
-                        ipfs_foto = img_uri.replace("ipfs://", "")
-            except Exception:
-                pass  # Jika gagal ambil metadata, tetap return data minimal
-
-            return jsonify({
-                "status":           "sukses",
-                "pesan":            "✅ Ijazah ASLI Terverifikasi di Blockchain!",
-                "nama_mahasiswa":   nama_mhs,
-                "nim":              nim,
-                "wallet_mahasiswa": owner_wallet,
-                "tanggal_terbit":   tanggal,
-                "ipfs_meta":        ipfs_hash,
-                "ipfs_foto":        ipfs_foto,
-                "link_foto":        f"https://gateway.pinata.cloud/ipfs/{ipfs_foto}",
-            }), 200
-
-    except Exception as e:
-        err_str = str(e)
-        if "Tidak Ditemukan" in err_str or "revert" in err_str.lower() or "execution reverted" in err_str.lower():
-            return jsonify({
-                "status": "error",
-                "pesan": "❌ Ijazah PALSU atau NIM Tidak Terdaftar di Blockchain!"
-            }), 404
-        return jsonify({"status": "error", "pesan": f"Error: {err_str}"}), 500
-
-# ==========================================
-# ENDPOINT 3: STATISTIK
-# GET /api/stats
-# ==========================================
-@app.route('/api/stats', methods=['GET'])
-def stats_api():
-    try:
-        if CONTRACT_VERSION == 2:
-            total = cert_contract.functions.totalIssued().call()
-        else:
-            # V1 tidak punya totalIssued — hitung dari events (estimasi)
-            total = "—"  # atau bisa query events
 
         return jsonify({
-            "status":   "sukses",
-            "total_ijazah": total,
-            "network":  "Ethereum Sepolia Testnet",
-            "kontrak":  ALAMAT_KONTRAK,
-            "versi_kontrak": f"V{CONTRACT_VERSION}",
-            "link_etherscan_kontrak": f"https://sepolia.etherscan.io/address/{ALAMAT_KONTRAK}"
+            "status":        "sukses",
+            "pesan":         "Sertifikat Asli Ditemukan!",
+            "nama":          metadata.get("nama", "-"),
+            "nim":           metadata.get("nim", str(nim)),
+            "institusi":     metadata.get("institusi", NAMA_KAMPUS),
+            "pemilik":       owner_wallet,
+            "doc_url":       metadata.get("document_url", ""),
+            "doc_cid":       metadata.get("document_cid", ""),
+            "etherscan_url": f"https://sepolia.etherscan.io/address/{owner_wallet}"
         }), 200
+
     except Exception as e:
-        return jsonify({"status": "error", "pesan": str(e)}), 500
+        print(f"ERROR VERIFIKASI: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "pesan":  "Sertifikat Palsu atau NIM Tidak Terdaftar!"
+        }), 404
 
-# ==========================================
-# ENDPOINT 4: HEALTH CHECK
-# GET /api/health
-# ==========================================
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    connected = w3.is_connected()
-    return jsonify({
-        "status":              "online",
-        "blockchain_connected": connected,
-        "network":             "Sepolia Testnet" if connected else "Disconnected",
-        "admin_wallet":        REKTOR_WALLET,
-        "contract_version":   f"V{CONTRACT_VERSION}",
-        "project":             "IjazahChain v2.0",
-        "author":              "Jabir Firdaus"
-    }), 200
 
-# ==========================================
-# JALANKAN SERVER
-# ==========================================
 if __name__ == '__main__':
-    print("=" * 55)
-    print("  IjazahChain Backend API v2.0")
-    print("  Author  : Jabir Firdaus")
-    print("  Server  : http://localhost:5000")
-    print("  Network : Ethereum Sepolia Testnet")
-    print(f"  Contract: V{CONTRACT_VERSION} — {ALAMAT_KONTRAK}")
-    print("=" * 55)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print(f"Server aktif -> http://localhost:5000")
+    app.run(port=5000, debug=True)
