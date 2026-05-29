@@ -3,47 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IjazahChain — Verifikasi Ijazah Digital UMC</title>
-  <meta name="description" content="Sistem verifikasi ijazah digital berbasis blockchain Ethereum. Dibangun oleh Jabir Firdaus, Universitas Muhammadiyah Cirebon." />
+  <title>IjazahChain UMC — Verifikasi Ijazah Digital</title>
+  <meta name="description" content="Sistem verifikasi ijazah digital berbasis blockchain Ethereum. Dibangun untuk Universitas Muhammadiyah Cirebon oleh @jabirandika." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <style>
-    /* --------------------------------------------------
-       Design Tokens
-       Referensi: ethereum.org, linear.app, vercel.com
-    -------------------------------------------------- */
+    /*
+      Palet: Eco-Blockchain
+      Base    : Rich Dark Teal
+      Aksen   : Emerald / Mint Green
+      Konten  : Krem Terang
+    */
     :root {
-      --bg-base:      #0b0d14;
-      --bg-surface:   #111420;
-      --bg-elevated:  #181c2e;
-      --bg-hover:     #1e2236;
+      --bg-base:     #071412;
+      --bg-surface:  #0c1e1b;
+      --bg-elevated: #112520;
+      --bg-hover:    #163029;
 
-      --border:       rgba(255, 255, 255, 0.07);
-      --border-focus: rgba(99, 102, 241, 0.5);
+      --border:       rgba(52, 211, 153, 0.1);
+      --border-focus: rgba(52, 211, 153, 0.45);
 
-      --indigo-600:   #4f46e5;
-      --indigo-500:   #6366f1;
-      --indigo-400:   #818cf8;
-      --indigo-300:   #a5b4fc;
-      --violet-400:   #a78bfa;
+      --emerald-600: #059669;
+      --emerald-500: #10b981;
+      --emerald-400: #34d399;
+      --emerald-300: #6ee7b7;
+      --emerald-100: rgba(110, 231, 183, 0.08);
 
-      --text-primary:   #e8eaf6;
-      --text-secondary: #7b7f9e;
-      --text-muted:     #41455c;
-      --text-code:      #94a3b8;
+      --teal-700: #0f4c41;
+      --teal-600: #0d7055;
 
-      --green-500: #22c55e;
-      --green-bg:  rgba(34, 197, 94, 0.06);
-      --green-border: rgba(34, 197, 94, 0.2);
+      --cream-100: #f5f0e8;
+      --cream-200: #e8e1d4;
+      --cream-300: #c8bfad;
+      --cream-muted: #7a7264;
 
-      --red-500:  #f87171;
-      --red-bg:   rgba(248, 113, 113, 0.06);
+      --text-primary:   #f0ece4;
+      --text-secondary: #8aada6;
+      --text-muted:     #3d6660;
+      --text-code:      #6ee7b7;
+
+      --red-500:    #f87171;
+      --red-bg:     rgba(248, 113, 113, 0.06);
       --red-border: rgba(248, 113, 113, 0.2);
 
       --amber-400: #fbbf24;
       --amber-bg:  rgba(251, 191, 36, 0.06);
+
+      --success-bg:     rgba(16, 185, 129, 0.06);
+      --success-border: rgba(16, 185, 129, 0.25);
 
       --radius-sm: 6px;
       --radius-md: 10px;
@@ -52,19 +61,11 @@
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-      --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --ease: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
 
     body {
       font-family: var(--font-sans);
@@ -75,81 +76,87 @@
       overflow-x: hidden;
     }
 
-    /* Subtle noise texture via gradient */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(99, 102, 241, 0.12) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(167, 139, 250, 0.06) 0%, transparent 60%);
+        radial-gradient(ellipse 65% 45% at 50% -5%, rgba(16, 185, 129, 0.1) 0%, transparent 65%),
+        radial-gradient(ellipse 35% 25% at 85% 90%, rgba(5, 150, 105, 0.08) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* --------------------------------------------------
-       Scrollbar
-    -------------------------------------------------- */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 99px; }
 
-    /* --------------------------------------------------
-       Layout Wrapper
-    -------------------------------------------------- */
+    /* ─── Layout ─────────────────────────────────────────── */
+
     .page {
       position: relative;
       z-index: 1;
-      max-width: 720px;
+      max-width: 700px;
       margin: 0 auto;
       padding: 0 20px 80px;
     }
 
-    /* --------------------------------------------------
-       Header
-    -------------------------------------------------- */
+    /* ─── Header ─────────────────────────────────────────── */
+
     .header {
-      padding: 48px 0 40px;
+      padding: 44px 0 36px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 28px;
     }
 
     .header-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 9px;
       font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
-      letter-spacing: -0.3px;
+      letter-spacing: -0.2px;
+    }
+
+    .wordmark-ring {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--emerald-500);
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
     }
 
     .wordmark-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--indigo-500);
-      box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+      background: var(--emerald-500);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
       animation: breathe 2.4s ease-in-out infinite;
     }
 
     @keyframes breathe {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.45; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.75); }
     }
 
     .network-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
+      padding: 4px 11px;
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: 99px;
@@ -159,54 +166,51 @@
       font-family: var(--font-mono);
     }
 
-    .network-pill-dot {
+    .pill-dot {
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      background: var(--green-500);
-      box-shadow: 0 0 6px var(--green-500);
+      background: var(--emerald-400);
+      box-shadow: 0 0 5px var(--emerald-400);
     }
 
-    .hero {
-      padding: 8px 0;
-    }
-
-    .hero-university {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
+    /* Hero */
+    .hero-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--indigo-400);
-      margin-bottom: 12px;
+      color: var(--emerald-400);
+      margin-bottom: 10px;
     }
 
     .hero-title {
-      font-size: clamp(28px, 5vw, 38px);
+      font-size: clamp(26px, 5vw, 36px);
       font-weight: 700;
-      letter-spacing: -0.8px;
+      letter-spacing: -0.7px;
+      line-height: 1.22;
       color: var(--text-primary);
-      line-height: 1.2;
       margin-bottom: 14px;
     }
 
-    .hero-title span {
-      background: linear-gradient(135deg, var(--indigo-400), var(--violet-400));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .hero-title em {
+      font-style: normal;
+      color: var(--emerald-400);
     }
 
     .hero-desc {
-      font-size: 15px;
+      font-size: 14.5px;
       color: var(--text-secondary);
-      max-width: 520px;
-      line-height: 1.7;
+      max-width: 500px;
+      line-height: 1.75;
     }
 
+    /* Stats row */
     .stats-row {
       display: flex;
       gap: 1px;
       background: var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       overflow: hidden;
     }
@@ -214,52 +218,50 @@
     .stat-cell {
       flex: 1;
       background: var(--bg-surface);
-      padding: 14px 18px;
-      transition: background var(--transition);
+      padding: 13px 16px;
+      transition: background var(--ease);
     }
 
     .stat-cell:hover { background: var(--bg-hover); }
 
     .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--emerald-400);
       letter-spacing: -0.5px;
       line-height: 1;
       margin-bottom: 4px;
-      font-family: var(--font-mono);
     }
 
     .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
+      font-size: 10px;
       font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
     }
 
-    /* --------------------------------------------------
-       Tab Navigation — Underline style (like Gemini/Google)
-    -------------------------------------------------- */
+    /* ─── Tabs (underline, Gemini-style) ──────────────────── */
+
     .tab-nav {
       display: flex;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 32px;
-      gap: 0;
+      margin-bottom: 30px;
     }
 
     .tab-btn {
       position: relative;
-      padding: 12px 0;
-      margin-right: 28px;
+      padding: 11px 0;
+      margin-right: 26px;
       background: none;
       border: none;
       font-family: var(--font-sans);
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 500;
       color: var(--text-muted);
       cursor: pointer;
-      transition: color var(--transition);
+      transition: color var(--ease);
       white-space: nowrap;
     }
 
@@ -267,60 +269,43 @@
       content: '';
       position: absolute;
       bottom: -1px;
-      left: 0;
-      right: 0;
+      left: 0; right: 0;
       height: 2px;
-      background: var(--indigo-500);
+      background: var(--emerald-500);
       border-radius: 2px 2px 0 0;
       transform: scaleX(0);
-      transition: transform var(--transition);
+      transition: transform var(--ease);
     }
 
     .tab-btn:hover { color: var(--text-secondary); }
-
-    .tab-btn.active {
-      color: var(--text-primary);
-    }
-
-    .tab-btn.active::after {
-      transform: scaleX(1);
-    }
+    .tab-btn.active { color: var(--cream-100); }
+    .tab-btn.active::after { transform: scaleX(1); }
 
     .tab-content { display: none; }
-    .tab-content.active {
-      display: block;
-      animation: fadeUp 200ms ease;
-    }
+    .tab-content.active { display: block; animation: fadeup 200ms ease; }
 
-    @keyframes fadeUp {
+    @keyframes fadeup {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* --------------------------------------------------
-       Section Labels
-    -------------------------------------------------- */
+    /* ─── Section label ───────────────────────────────────── */
+
     .section-label {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
-    /* --------------------------------------------------
-       Form
-    -------------------------------------------------- */
+    /* ─── Form ────────────────────────────────────────────── */
+
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    @media (max-width: 520px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .header-top { flex-direction: column; align-items: flex-start; gap: 12px; }
+      gap: 14px;
     }
 
     .form-group {
@@ -329,65 +314,52 @@
       gap: 7px;
     }
 
-    .form-group.full {
-      grid-column: 1 / -1;
-    }
+    .form-group.full { grid-column: 1 / -1; }
 
     label {
       font-size: 12px;
       font-weight: 500;
       color: var(--text-secondary);
-      letter-spacing: 0.01em;
     }
 
-    label .req {
-      color: var(--indigo-400);
-      margin-left: 2px;
-    }
+    label .req { color: var(--emerald-400); margin-left: 2px; }
 
-    input[type="text"],
-    input[type="number"] {
+    input[type="text"] {
       width: 100%;
       padding: 10px 12px;
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      color: var(--text-primary);
+      color: var(--cream-100);
       font-family: var(--font-sans);
       font-size: 14px;
       outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--ease), box-shadow var(--ease);
     }
 
-    input[type="text"]:focus,
-    input[type="number"]:focus {
+    input[type="text"]:focus {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.1);
     }
 
-    input::placeholder {
-      color: var(--text-muted);
-      font-size: 13px;
-    }
+    input::placeholder { color: var(--text-muted); font-size: 13px; }
 
-    /* --------------------------------------------------
-       Upload Zone
-    -------------------------------------------------- */
+    /* Upload zone */
     .upload-zone {
       position: relative;
-      border: 1px dashed var(--border);
+      border: 1px dashed rgba(52, 211, 153, 0.2);
       border-radius: var(--radius-md);
-      padding: 32px 24px;
+      padding: 28px 20px;
       text-align: center;
       cursor: pointer;
-      transition: border-color var(--transition), background var(--transition);
       background: var(--bg-surface);
+      transition: border-color var(--ease), background var(--ease);
     }
 
     .upload-zone:hover,
     .upload-zone.over {
-      border-color: var(--indigo-500);
-      background: rgba(99, 102, 241, 0.04);
+      border-color: var(--emerald-500);
+      background: var(--emerald-100);
     }
 
     .upload-zone input[type="file"] {
@@ -399,174 +371,143 @@
       height: 100%;
     }
 
-    .upload-icon {
-      width: 36px;
-      height: 36px;
-      margin: 0 auto 12px;
+    .upload-svg {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 10px;
       color: var(--text-muted);
+      display: block;
     }
 
     .upload-title {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 500;
       color: var(--text-secondary);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
-    .upload-hint {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+    .upload-hint { font-size: 12px; color: var(--text-muted); }
 
-    .upload-filename {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--indigo-400);
-      font-family: var(--font-mono);
+    .upload-picked {
       display: none;
+      margin-top: 8px;
+      font-size: 12.5px;
+      font-family: var(--font-mono);
+      color: var(--emerald-400);
     }
 
-    /* --------------------------------------------------
-       Buttons
-    -------------------------------------------------- */
+    /* ─── Buttons ─────────────────────────────────────────── */
+
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      width: 100%;
       padding: 11px 20px;
+      border: none;
       border-radius: var(--radius-sm);
       font-family: var(--font-sans);
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 600;
-      border: none;
       cursor: pointer;
-      transition: all var(--transition);
-      width: 100%;
+      transition: all var(--ease);
     }
 
     .btn-primary {
-      background: var(--indigo-500);
+      background: var(--emerald-500);
       color: #fff;
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: var(--indigo-600);
+      background: var(--emerald-600);
       transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-ghost {
-      background: var(--bg-surface);
-      color: var(--text-secondary);
-      border: 1px solid var(--border);
-    }
-
-    .btn-ghost:hover:not(:disabled) {
-      background: var(--bg-hover);
-      color: var(--text-primary);
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.3);
     }
 
     .btn-verify {
-      background: rgba(34, 197, 94, 0.1);
-      color: var(--green-500);
-      border: 1px solid var(--green-border);
+      background: var(--success-bg);
+      color: var(--emerald-400);
+      border: 1px solid var(--success-border);
     }
 
     .btn-verify:hover:not(:disabled) {
-      background: rgba(34, 197, 94, 0.15);
+      background: rgba(16, 185, 129, 0.1);
     }
 
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
-    /* --------------------------------------------------
-       Step Indicator
-    -------------------------------------------------- */
+    /* ─── Steps ───────────────────────────────────────────── */
+
     .steps {
       display: flex;
       align-items: center;
-      gap: 0;
-      margin-bottom: 28px;
+      margin-bottom: 26px;
     }
 
     .step {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       flex: 1;
     }
 
     .step-num {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: var(--bg-surface);
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
       color: var(--text-muted);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      transition: all var(--transition);
-      font-family: var(--font-mono);
+      transition: all var(--ease);
     }
 
     .step.active .step-num {
-      border-color: var(--indigo-500);
-      background: rgba(99, 102, 241, 0.12);
-      color: var(--indigo-400);
+      border-color: var(--emerald-400);
+      background: var(--emerald-100);
+      color: var(--emerald-400);
     }
 
     .step.done .step-num {
-      border-color: var(--green-border);
-      background: var(--green-bg);
-      color: var(--green-500);
+      border-color: var(--success-border);
+      background: var(--success-bg);
+      color: var(--emerald-500);
     }
 
     .step-text {
       font-size: 11px;
       font-weight: 500;
       color: var(--text-muted);
-      transition: color var(--transition);
+      transition: color var(--ease);
     }
 
-    .step.active .step-text { color: var(--indigo-400); }
-    .step.done .step-text   { color: var(--text-secondary); }
+    .step.active .step-text { color: var(--emerald-400); }
+    .step.done  .step-text  { color: var(--text-secondary); }
 
-    .step-line {
+    .step-bar {
       height: 1px;
       flex: 1;
       background: var(--border);
-      margin: 0 8px;
+      margin: 0 6px;
     }
 
-    /* --------------------------------------------------
-       Divider
-    -------------------------------------------------- */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 28px 0;
-    }
+    /* ─── Alert strip ─────────────────────────────────────── */
 
-    /* --------------------------------------------------
-       Alert / Feedback Strip
-    -------------------------------------------------- */
     .alert {
       display: none;
-      padding: 14px 16px;
+      padding: 13px 15px;
       border-radius: var(--radius-md);
       font-size: 13px;
       line-height: 1.6;
-      margin-top: 16px;
-      animation: fadeUp 200ms ease;
+      margin-top: 14px;
+      animation: fadeup 200ms ease;
     }
 
     .alert.loading {
@@ -576,9 +517,9 @@
     }
 
     .alert.success {
-      background: var(--green-bg);
-      border: 1px solid var(--green-border);
-      color: var(--green-500);
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--emerald-400);
     }
 
     .alert.error {
@@ -587,13 +528,12 @@
       color: var(--red-500);
     }
 
-    /* --------------------------------------------------
-       Loader Spinner
-    -------------------------------------------------- */
+    /* ─── Spinner ─────────────────────────────────────────── */
+
     .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.25);
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255,255,255,0.2);
       border-top-color: currentColor;
       border-radius: 50%;
       animation: spin 0.65s linear infinite;
@@ -602,119 +542,101 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* --------------------------------------------------
-       Result Panel (Verifikasi)
-    -------------------------------------------------- */
+    /* ─── Result panel ────────────────────────────────────── */
+
     .result-panel {
       display: none;
-      margin-top: 24px;
-      border-radius: var(--radius-lg);
+      margin-top: 22px;
       border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
       overflow: hidden;
-      animation: fadeUp 200ms ease;
+      animation: fadeup 200ms ease;
     }
 
-    .result-header-bar {
+    .result-bar {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 18px 22px;
+      gap: 13px;
+      padding: 16px 20px;
     }
 
-    .result-header-bar.valid {
-      background: var(--green-bg);
-      border-bottom: 1px solid var(--green-border);
+    .result-bar.valid {
+      background: var(--success-bg);
+      border-bottom: 1px solid var(--success-border);
     }
 
-    .result-header-bar.invalid {
+    .result-bar.invalid {
       background: var(--red-bg);
       border-bottom: 1px solid var(--red-border);
     }
 
     .status-icon {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
+      font-family: var(--font-mono);
       flex-shrink: 0;
     }
 
     .status-icon.valid {
-      background: rgba(34, 197, 94, 0.15);
-      border: 1px solid var(--green-border);
-      color: var(--green-500);
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--emerald-400);
     }
 
     .status-icon.invalid {
-      background: rgba(248, 113, 113, 0.15);
+      background: var(--red-bg);
       border: 1px solid var(--red-border);
       color: var(--red-500);
     }
 
-    .status-title {
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .status-title.valid   { color: var(--green-500); }
+    .status-title { font-size: 14.5px; font-weight: 600; }
+    .status-title.valid   { color: var(--emerald-400); }
     .status-title.invalid { color: var(--red-500); }
 
-    .status-sub {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+    .status-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-    .result-body {
-      background: var(--bg-surface);
-      padding: 22px;
-    }
+    .result-body { background: var(--bg-surface); padding: 20px; }
 
     .result-fields {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px 28px;
-    }
-
-    @media (max-width: 480px) {
-      .result-fields { grid-template-columns: 1fr; }
+      gap: 14px 24px;
     }
 
     .result-field label {
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 10.5px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.07em;
+      letter-spacing: 0.08em;
       color: var(--text-muted);
-      margin-bottom: 4px;
       display: block;
+      margin-bottom: 4px;
     }
 
-    .result-value {
+    .rval {
       font-size: 14px;
       font-weight: 500;
-      color: var(--text-primary);
+      color: var(--cream-100);
     }
 
-    .result-value.mono {
+    .rval.accent { color: var(--emerald-400); font-weight: 600; }
+
+    .rval.mono {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--text-code);
       word-break: break-all;
     }
 
-    .result-value.highlight {
-      color: var(--indigo-300);
-      font-weight: 600;
-    }
-
-    /* Dokumen preview */
+    /* Doc preview */
     .doc-preview {
-      margin-top: 20px;
+      margin-top: 18px;
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
       overflow: hidden;
@@ -723,31 +645,29 @@
 
     .doc-preview img {
       width: 100%;
-      max-height: 320px;
+      max-height: 300px;
       object-fit: contain;
       display: block;
     }
 
     .doc-preview iframe {
       width: 100%;
-      height: 320px;
+      height: 300px;
       border: none;
       display: block;
     }
 
+    /* Divider */
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
     /* Link chips */
-    .link-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 18px;
-    }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
 
     .chip {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 6px 12px;
+      padding: 5px 12px;
       border-radius: 99px;
       font-size: 12px;
       font-weight: 500;
@@ -755,72 +675,57 @@
       border: 1px solid var(--border);
       background: var(--bg-elevated);
       color: var(--text-secondary);
-      transition: all var(--transition);
+      transition: all var(--ease);
+      cursor: pointer;
     }
 
     .chip:hover {
       background: var(--bg-hover);
       color: var(--text-primary);
-      border-color: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.1);
     }
 
-    .chip.primary {
-      border-color: rgba(99, 102, 241, 0.3);
-      background: rgba(99, 102, 241, 0.07);
-      color: var(--indigo-400);
+    .chip.accent {
+      border-color: var(--success-border);
+      background: var(--success-bg);
+      color: var(--emerald-400);
     }
 
-    .chip.primary:hover {
-      background: rgba(99, 102, 241, 0.12);
-      color: var(--indigo-300);
-    }
+    .chip.accent:hover { background: rgba(16,185,129,0.12); }
 
-    /* --------------------------------------------------
-       About Tab
-    -------------------------------------------------- */
-    .about-section {
-      margin-bottom: 36px;
-    }
+    /* ─── About tab ───────────────────────────────────────── */
 
+    .about-section { margin-bottom: 32px; }
     .about-section:last-child { margin-bottom: 0; }
 
     .about-heading {
-      font-size: 16px;
+      font-size: 15.5px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--cream-100);
       letter-spacing: -0.2px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .about-body {
       font-size: 14px;
       color: var(--text-secondary);
-      line-height: 1.75;
+      line-height: 1.78;
     }
 
-    /* How it works — numbered list */
-    .flow-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .flow-list { display: flex; flex-direction: column; gap: 11px; }
 
-    .flow-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-    }
+    .flow-item { display: flex; align-items: flex-start; gap: 13px; }
 
     .flow-num {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: var(--bg-elevated);
       border: 1px solid var(--border);
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
       font-family: var(--font-mono);
-      color: var(--indigo-400);
+      color: var(--emerald-400);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -828,28 +733,15 @@
       margin-top: 1px;
     }
 
-    .flow-text {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
+    .flow-text { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+    .flow-text strong { color: var(--cream-100); font-weight: 500; }
 
-    .flow-text strong {
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-
-    /* Tech badges */
-    .tech-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    .tech-list { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .tech-tag {
       padding: 4px 10px;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 500;
       font-family: var(--font-mono);
       background: var(--bg-elevated);
@@ -861,19 +753,19 @@
     .author-block {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 18px;
+      gap: 15px;
+      padding: 16px;
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
     }
 
-    .author-initials {
-      width: 48px;
-      height: 48px;
+    .author-avatar {
+      width: 46px;
+      height: 46px;
       border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, var(--indigo-600), var(--violet-400));
-      font-size: 16px;
+      background: linear-gradient(135deg, var(--emerald-600), var(--emerald-400));
+      font-size: 15px;
       font-weight: 700;
       color: #fff;
       display: flex;
@@ -886,81 +778,72 @@
     .author-name {
       font-size: 15px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--cream-100);
       letter-spacing: -0.2px;
     }
 
-    .author-meta {
+    .author-handle {
       font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 3px;
+      font-family: var(--font-mono);
+      color: var(--emerald-400);
+      margin-top: 2px;
     }
 
-    .author-links-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px;
-    }
+    .author-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 
-    /* Contract address block */
+    .author-links { display: flex; gap: 6px; margin-top: 9px; }
+
+    /* Contract block */
     .contract-block {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 14px;
+      gap: 10px;
+      padding: 11px 13px;
       background: var(--bg-elevated);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      gap: 10px;
     }
 
     .contract-addr {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--text-code);
       word-break: break-all;
     }
 
-    /* --------------------------------------------------
-       Footer
-    -------------------------------------------------- */
+    /* ─── Footer ──────────────────────────────────────────── */
+
     .footer {
+      position: relative;
+      z-index: 1;
       border-top: 1px solid var(--border);
-      padding: 24px 20px;
+      padding: 22px 20px;
+      max-width: 700px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 720px;
-      margin: 0 auto;
-      gap: 12px;
       flex-wrap: wrap;
+      gap: 12px;
     }
 
     .footer-left {
       font-size: 12px;
       color: var(--text-muted);
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
-    .footer-left a {
-      color: var(--text-secondary);
-      text-decoration: none;
+    .footer-left span { color: var(--text-secondary); }
+
+    .footer-links { display: flex; gap: 6px; }
+
+    /* Responsive */
+    @media (max-width: 520px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .result-fields { grid-template-columns: 1fr; }
+      .header-top { flex-direction: column; align-items: flex-start; }
     }
-
-    .footer-left a:hover { color: var(--text-primary); }
-
-    .footer-right {
-      display: flex;
-      gap: 6px;
-    }
-
-    /* --------------------------------------------------
-       Misc utilities
-    -------------------------------------------------- */
-    .mt-4  { margin-top: 4px; }
-    .mt-8  { margin-top: 8px; }
-    .mt-16 { margin-top: 16px; }
-    .mt-24 { margin-top: 24px; }
   </style>
 </head>
 
@@ -968,29 +851,31 @@
 
 <div class="page">
 
-  <!-- ============ HEADER ============ -->
+  <!-- ─── Header ───────────────────────────────────────── -->
   <header class="header">
 
     <div class="header-top">
       <div class="wordmark">
-        <span class="wordmark-dot"></span>
-        IjazahChain
+        <div class="wordmark-ring">
+          <span class="wordmark-dot"></span>
+        </div>
+        IjazahChain &middot; UMC
       </div>
       <div class="network-pill">
-        <span class="network-pill-dot"></span>
+        <span class="pill-dot"></span>
         <span id="networkLabel">Sepolia Testnet</span>
       </div>
     </div>
 
     <div class="hero">
-      <p class="hero-university">Universitas Muhammadiyah Cirebon</p>
+      <p class="hero-tag">Universitas Muhammadiyah Cirebon</p>
       <h1 class="hero-title">
         Ijazah yang tidak bisa<br>
-        <span>dipalsukan.</span>
+        <em>dimanipulasi.</em>
       </h1>
       <p class="hero-desc">
-        Setiap ijazah tersimpan langsung di blockchain Ethereum —
-        permanen, transparan, dan bisa diverifikasi siapapun
+        Setiap ijazah tersimpan langsung di blockchain Ethereum.
+        Permanen, transparan, dan bisa diverifikasi kapan saja
         tanpa perlu menghubungi kampus.
       </p>
     </div>
@@ -1001,48 +886,47 @@
         <div class="stat-label">Ijazah Terbit</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-value" style="font-size: 14px; padding-top: 3px;">Ethereum</div>
+        <div class="stat-value" style="font-size: 13px; padding-top: 3px;">Ethereum</div>
         <div class="stat-label">Network</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-value" id="statAddr" style="font-size: 11px; font-family: var(--font-mono); padding-top: 5px;">—</div>
+        <div class="stat-value" id="statAddr" style="font-size: 10.5px; padding-top: 5px;">—</div>
         <div class="stat-label">Contract</div>
       </div>
     </div>
 
   </header>
 
-  <!-- ============ TABS ============ -->
-  <nav class="tab-nav" role="tablist">
+  <!-- ─── Tab nav ───────────────────────────────────────── -->
+  <nav class="tab-nav">
     <button class="tab-btn active" id="tab-issue"  onclick="switchTab('issue')">Terbitkan</button>
     <button class="tab-btn"        id="tab-verify" onclick="switchTab('verify')">Verifikasi</button>
     <button class="tab-btn"        id="tab-about"  onclick="switchTab('about')">Tentang</button>
   </nav>
 
-  <!-- ======================================================
+  <!-- =========================================================
        TAB: Terbitkan
-  ====================================================== -->
+  ========================================================= -->
   <div class="tab-content active" id="content-issue">
 
     <p class="section-label">Portal Admin — Penerbitan Ijazah</p>
 
-    <!-- Step indicator -->
-    <div class="steps" id="steps">
+    <div class="steps" id="stepRow">
       <div class="step active" id="step-1">
         <span class="step-num">1</span>
         <span class="step-text">Input data</span>
       </div>
-      <div class="step-line"></div>
+      <div class="step-bar"></div>
       <div class="step" id="step-2">
         <span class="step-num">2</span>
         <span class="step-text">Upload IPFS</span>
       </div>
-      <div class="step-line"></div>
+      <div class="step-bar"></div>
       <div class="step" id="step-3">
         <span class="step-num">3</span>
         <span class="step-text">Blockchain</span>
       </div>
-      <div class="step-line"></div>
+      <div class="step-bar"></div>
       <div class="step" id="step-4">
         <span class="step-num">4</span>
         <span class="step-text">Selesai</span>
@@ -1050,53 +934,54 @@
     </div>
 
     <form id="issueForm" autocomplete="off">
-
       <div class="form-grid">
+
         <div class="form-group">
           <label for="f-nama">Nama Lengkap <span class="req">*</span></label>
           <input type="text" id="f-nama" placeholder="Contoh: Rina Kusuma" required />
         </div>
+
         <div class="form-group">
           <label for="f-nim">NIM <span class="req">*</span></label>
-          <input type="text" id="f-nim" placeholder="240511067" required pattern="\d+" />
+          <input type="text" id="f-nim" placeholder="240511067" required />
         </div>
+
         <div class="form-group full">
           <label for="f-wallet">Wallet Address Mahasiswa <span class="req">*</span></label>
-          <input type="text" id="f-wallet"
-                 placeholder="0x..."
-                 pattern="^0x[a-fA-F0-9]{40}$"
-                 required />
+          <input type="text" id="f-wallet" placeholder="0x..." required />
         </div>
+
         <div class="form-group full">
           <label>File Ijazah <span class="req">*</span></label>
           <div class="upload-zone" id="uploadZone">
             <input type="file" id="f-file" accept=".pdf,.jpg,.jpeg,.png"
                    onchange="onFileSelect(this)" required />
-            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg class="upload-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div class="upload-title">Seret file ke sini, atau klik untuk pilih</div>
             <div class="upload-hint">PDF, JPG, atau PNG — maks. 10 MB</div>
-            <div class="upload-filename" id="uploadFilename"></div>
+            <div class="upload-picked" id="pickedFile"></div>
           </div>
         </div>
+
       </div>
 
-      <div class="mt-24">
+      <div style="margin-top: 20px;">
         <button type="submit" class="btn btn-primary" id="btnIssue">
           Terbitkan ke Blockchain
         </button>
       </div>
-
     </form>
 
     <div class="alert" id="issueAlert"></div>
 
   </div>
 
-  <!-- ======================================================
+  <!-- =========================================================
        TAB: Verifikasi
-  ====================================================== -->
+  ========================================================= -->
   <div class="tab-content" id="content-verify">
 
     <p class="section-label">Portal Verifikasi — Terbuka untuk Umum</p>
@@ -1105,19 +990,19 @@
       <label for="v-nim">NIM Mahasiswa</label>
       <input type="text" id="v-nim"
              placeholder="Masukkan NIM yang ingin dicek..."
-             pattern="\d+" />
+             onkeydown="if(event.key==='Enter') doVerify()" />
     </div>
 
-    <div class="mt-16">
+    <div style="margin-top: 14px;">
       <button class="btn btn-verify" id="btnVerify" onclick="doVerify()">
         Cek Keaslian Ijazah
       </button>
     </div>
 
-    <!-- Result -->
+    <!-- Result panel -->
     <div class="result-panel" id="resultPanel">
 
-      <div class="result-header-bar" id="resultHeaderBar">
+      <div class="result-bar" id="resultBar">
         <div class="status-icon" id="resultIcon"></div>
         <div>
           <div class="status-title" id="resultTitle"></div>
@@ -1127,37 +1012,38 @@
 
       <div class="result-body">
         <div class="result-fields" id="resultFields"></div>
-        <div id="docPreviewWrap" style="display:none;">
+
+        <div id="previewWrap" style="display:none;">
           <div class="divider"></div>
-          <p class="section-label" style="margin-bottom: 10px;">Dokumen Ijazah</p>
+          <p class="section-label" style="margin-bottom:10px;">Dokumen Ijazah</p>
           <div class="doc-preview" id="docPreview"></div>
         </div>
-        <div class="link-chips" id="resultChips"></div>
+
+        <div class="chips" id="resultChips"></div>
       </div>
 
     </div>
 
   </div>
 
-  <!-- ======================================================
+  <!-- =========================================================
        TAB: Tentang
-  ====================================================== -->
+  ========================================================= -->
   <div class="tab-content" id="content-about">
 
-    <!-- Author -->
+    <!-- Developer / author -->
     <div class="about-section">
       <div class="author-block">
-        <div class="author-initials">JF</div>
+        <div class="author-avatar">JA</div>
         <div>
-          <div class="author-name">Jabir Firdaus</div>
-          <div class="author-meta">Teknik Informatika &mdash; Universitas Muhammadiyah Cirebon &middot; 2026</div>
-          <div class="author-links-row">
-            <a href="https://github.com/jabirfirdaus" target="_blank" class="chip">
-              GitHub
-            </a>
-            <a href="https://sepolia.etherscan.io/address/0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0" target="_blank" class="chip primary">
-              Smart Contract
-            </a>
+          <div class="author-name">Jabir Andika</div>
+          <div class="author-handle">@jabirandika</div>
+          <div class="author-meta">Teknik Informatika &mdash; Universitas Muhammadiyah Cirebon</div>
+          <div class="author-links">
+            <a href="https://github.com/jabirfirdaus" target="_blank" class="chip">GitHub</a>
+            <a href="https://instagram.com/frds.z4f" target="_blank" class="chip">Instagram</a>
+            <a href="https://sepolia.etherscan.io/address/0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0"
+               target="_blank" class="chip accent">Smart Contract</a>
           </div>
         </div>
       </div>
@@ -1165,54 +1051,54 @@
 
     <div class="divider"></div>
 
-    <!-- Tentang proyek -->
     <div class="about-section">
-      <h2 class="about-heading">Kenapa blockchain?</h2>
+      <h2 class="about-heading">Kenapa blockchain untuk ijazah?</h2>
       <p class="about-body">
-        Ijazah kertas bisa dipalsukan, diedit, bahkan dicetak ulang.
-        Database kampus bisa diretas atau rusak.
-        Blockchain menyelesaikan ini dengan cara yang berbeda —
-        data tidak disimpan di satu server, tapi tersebar di ribuan node di seluruh dunia.
+        Ijazah kertas bisa dipalsukan dan database kampus bisa diretas.
+        Blockchain menyelesaikan ini secara fundamental — data tidak disimpan
+        di satu server, melainkan tersebar di ribuan node di seluruh dunia.
         Tidak ada satu pihak pun yang bisa mengubahnya setelah data masuk.
       </p>
     </div>
 
-    <!-- Cara kerja -->
     <div class="about-section">
       <h2 class="about-heading">Cara kerjanya</h2>
       <div class="flow-list">
         <div class="flow-item">
           <div class="flow-num">1</div>
           <div class="flow-text">
-            <strong>Admin upload file ijazah.</strong>
-            File dikirim ke IPFS via Pinata — jaringan penyimpanan terdesentralisasi yang menghasilkan hash unik (CID) untuk setiap file.
+            <strong>File ijazah diunggah ke IPFS.</strong>
+            Pinata IPFS menyimpan file dan menghasilkan CID — hash unik yang
+            menjadi identitas permanen file tersebut.
           </div>
         </div>
         <div class="flow-item">
           <div class="flow-num">2</div>
           <div class="flow-text">
-            <strong>Metadata dibuat dan diupload.</strong>
-            Sistem membuat file JSON berisi nama, NIM, universitas, dan link ke file ijazah, lalu menguploadnya ke IPFS.
+            <strong>Metadata JSON dibuat dan diunggah.</strong>
+            Sistem membuat file JSON berisi nama, NIM, institusi, dan URL file,
+            lalu mengunggahnya ke IPFS juga.
           </div>
         </div>
         <div class="flow-item">
           <div class="flow-num">3</div>
           <div class="flow-text">
-            <strong>Smart contract mencatat data.</strong>
-            Backend menandatangani transaksi dengan private key admin dan mengirimnya ke kontrak Ethereum. NIM menjadi kunci unik permanen.
+            <strong>Smart contract mencatat URI metadata.</strong>
+            Backend menandatangani transaksi dan mengirimnya ke Ethereum.
+            NIM menjadi kunci unik permanen yang terikat ke URI metadata.
           </div>
         </div>
         <div class="flow-item">
           <div class="flow-num">4</div>
           <div class="flow-text">
-            <strong>Siapapun bisa memverifikasi.</strong>
-            Masukkan NIM di tab Verifikasi. Sistem membaca langsung dari blockchain — tanpa server perantara, tanpa bisa dimanipulasi.
+            <strong>Verifikasi terbuka tanpa perantara.</strong>
+            Masukkan NIM di tab Verifikasi. Sistem membaca blockchain langsung,
+            mengambil metadata dari IPFS, dan menampilkan hasilnya.
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Tech stack -->
     <div class="about-section">
       <h2 class="about-heading">Stack teknologi</h2>
       <div class="tech-list">
@@ -1226,13 +1112,12 @@
       </div>
     </div>
 
-    <!-- Contract address -->
     <div class="about-section">
       <h2 class="about-heading">Contract address</h2>
       <div class="contract-block">
         <span class="contract-addr">0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0</span>
         <a href="https://sepolia.etherscan.io/address/0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0"
-           target="_blank" class="chip" style="flex-shrink: 0; white-space: nowrap;">
+           target="_blank" class="chip" style="flex-shrink:0;">
           Etherscan
         </a>
       </div>
@@ -1243,33 +1128,28 @@
 </div><!-- /page -->
 
 
-<!-- ============ FOOTER ============ -->
+<!-- ─── Footer ─────────────────────────────────────────── -->
 <footer class="footer">
   <div class="footer-left">
-    Dibuat oleh <a href="https://github.com/jabirfirdaus" target="_blank">Jabir Firdaus</a>
+    Dibuat oleh <span>@jabirandika</span>
     &nbsp;&middot;&nbsp;
     Universitas Muhammadiyah Cirebon
     &nbsp;&middot;&nbsp;
     2026
   </div>
-  <div class="footer-right">
-    <a href="https://github.com/jabirfirdaus/cert-nft-system" target="_blank" class="chip">
-      Lihat Kode
-    </a>
+  <div class="footer-links">
+    <a href="https://github.com/jabirfirdaus" target="_blank" class="chip">GitHub</a>
+    <a href="https://instagram.com/frds.z4f" target="_blank" class="chip">Instagram</a>
   </div>
 </footer>
 
 
-<!-- ============ SCRIPT ============ -->
 <script>
-  const API = 'http://localhost:5000'
-  const IPFS_GW = 'https://gateway.pinata.cloud/ipfs/'
-  const ETHERSCAN_TX   = 'https://sepolia.etherscan.io/tx/'
-  const ETHERSCAN_ADDR = 'https://sepolia.etherscan.io/address/0xd1eD6112A65492a761C8Fe68666a1f8cd32e49A0'
+  const API        = 'http://localhost:5000'
+  const IPFS_GW   = 'https://gateway.pinata.cloud/ipfs/'
+  const ETHERSCAN  = 'https://sepolia.etherscan.io'
 
-  /* --------------------------------------------------
-     Tab switching
-  -------------------------------------------------- */
+  // ─── Tab switching ──────────────────────────────────────
   function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
@@ -1277,15 +1157,13 @@
     document.getElementById('content-' + name).classList.add('active')
   }
 
-  /* --------------------------------------------------
-     Upload zone feedback
-  -------------------------------------------------- */
+  // ─── Upload zone ────────────────────────────────────────
   function onFileSelect(input) {
-    const label = document.getElementById('uploadFilename')
+    const picked = document.getElementById('pickedFile')
     if (input.files && input.files[0]) {
-      label.style.display = 'block'
-      label.textContent = input.files[0].name
-      document.getElementById('uploadZone').style.borderColor = 'var(--indigo-500)'
+      picked.style.display = 'block'
+      picked.textContent = input.files[0].name
+      document.getElementById('uploadZone').style.borderColor = 'var(--emerald-400)'
     }
   }
 
@@ -1301,21 +1179,17 @@
     }
   })
 
-  /* --------------------------------------------------
-     Step indicator
-  -------------------------------------------------- */
+  // ─── Step indicator ─────────────────────────────────────
   function setStep(n) {
     for (let i = 1; i <= 4; i++) {
       const el = document.getElementById('step-' + i)
       el.classList.remove('active', 'done')
-      if (i < n) el.classList.add('done')
+      if (i < n)      el.classList.add('done')
       else if (i === n) el.classList.add('active')
     }
   }
 
-  /* --------------------------------------------------
-     Alert helper
-  -------------------------------------------------- */
+  // ─── Alert helper ───────────────────────────────────────
   function showAlert(id, type, html) {
     const el = document.getElementById(id)
     el.className = 'alert ' + type
@@ -1323,19 +1197,15 @@
     el.innerHTML = html
   }
 
-  /* --------------------------------------------------
-     Sanitize output
-  -------------------------------------------------- */
-  function esc(str) {
-    if (!str && str !== 0) return ''
-    return String(str)
+  // ─── Sanitize ───────────────────────────────────────────
+  function esc(v) {
+    if (v == null) return ''
+    return String(v)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;').replace(/'/g,'&#39;')
   }
 
-  /* --------------------------------------------------
-     FORM: Terbitkan Ijazah
-  -------------------------------------------------- */
+  // ─── FORM: Terbitkan ────────────────────────────────────
   document.getElementById('issueForm').addEventListener('submit', async e => {
     e.preventDefault()
 
@@ -1345,7 +1215,12 @@
     const file   = document.getElementById('f-file').files[0]
     const btn    = document.getElementById('btnIssue')
 
-    if (!file) { alert('Pilih file ijazah terlebih dahulu.'); return }
+    if (!file)   { alert('Pilih file ijazah terlebih dahulu.'); return }
+    if (!nim || !/^\d+$/.test(nim)) { alert('NIM harus berupa angka.'); return }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
+      alert('Wallet address tidak valid. Harus diawali 0x dan 40 karakter hex.')
+      return
+    }
 
     btn.disabled = true
     btn.innerHTML = '<span class="spinner"></span> Memproses...'
@@ -1353,35 +1228,33 @@
     showAlert('issueAlert', 'loading', 'Mengunggah dokumen ke IPFS...')
 
     const fd = new FormData()
-    fd.append('fileIjazah', file)
-    fd.append('namaMahasiswa', nama)
-    fd.append('nimMahasiswa', nim)
+    fd.append('fileIjazah',     file)
+    fd.append('namaMahasiswa',  nama)
+    fd.append('nimMahasiswa',   nim)
     fd.append('dompetMahasiswa', wallet)
 
     try {
       const res  = await fetch(API + '/api/terbitkan', { method: 'POST', body: fd })
       setStep(3)
-      showAlert('issueAlert', 'loading', 'Transaksi dikirim ke blockchain — menunggu konfirmasi...')
+      showAlert('issueAlert', 'loading', 'Transaksi dikirim ke blockchain, menunggu konfirmasi...')
 
       const data = await res.json()
 
       if (res.ok) {
         setStep(4)
+        const txHash = data.hash_transaksi || ''
         showAlert('issueAlert', 'success', `
-          <strong>${esc(data.nama)}</strong> &mdash; NIM ${esc(data.nim)}<br>
-          Ijazah berhasil diterbitkan ke blockchain.<br><br>
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
-            <a href="${ETHERSCAN_TX}${esc(data.hash_transaksi)}" target="_blank" class="chip primary">
-              Lihat transaksi Etherscan
-            </a>
-            <a href="${IPFS_GW}${esc(data.ipfs_foto)}" target="_blank" class="chip">
-              Buka dokumen IPFS
-            </a>
+          <strong>${esc(nama)}</strong> — NIM ${esc(nim)}<br>
+          Ijazah berhasil diterbitkan ke blockchain.<br>
+          <div class="chips" style="margin-top: 10px;">
+            ${txHash ? `<a href="${ETHERSCAN}/tx/${esc(txHash)}" target="_blank" class="chip accent">Lihat transaksi</a>` : ''}
+            ${data.doc_cid ? `<a href="${IPFS_GW}${esc(data.doc_cid)}" target="_blank" class="chip">Buka dokumen</a>` : ''}
           </div>
         `)
       } else {
         throw new Error(data.pesan || 'Terjadi kesalahan.')
       }
+
     } catch (err) {
       setStep(1)
       showAlert('issueAlert', 'error', esc(err.message))
@@ -1391,12 +1264,11 @@
     }
   })
 
-  /* --------------------------------------------------
-     VERIFIKASI
-  -------------------------------------------------- */
+  // ─── VERIFIKASI ─────────────────────────────────────────
   async function doVerify() {
-    const nim = document.getElementById('v-nim').value.trim()
-    const btn = document.getElementById('btnVerify')
+    const nim  = document.getElementById('v-nim').value.trim()
+    const btn  = document.getElementById('btnVerify')
+    const panel = document.getElementById('resultPanel')
 
     if (!nim || !/^\d+$/.test(nim)) {
       alert('Masukkan NIM yang valid (angka saja).')
@@ -1405,8 +1277,6 @@
 
     btn.disabled = true
     btn.innerHTML = '<span class="spinner"></span> Memeriksa blockchain...'
-
-    const panel  = document.getElementById('resultPanel')
     panel.style.display = 'none'
 
     try {
@@ -1415,107 +1285,109 @@
 
       panel.style.display = 'block'
 
-      const headerBar = document.getElementById('resultHeaderBar')
-      const icon      = document.getElementById('resultIcon')
-      const title     = document.getElementById('resultTitle')
-      const sub       = document.getElementById('resultSub')
-      const fields    = document.getElementById('resultFields')
-      const previewWrap = document.getElementById('docPreviewWrap')
-      const preview   = document.getElementById('docPreview')
-      const chips     = document.getElementById('resultChips')
+      const bar     = document.getElementById('resultBar')
+      const icon    = document.getElementById('resultIcon')
+      const title   = document.getElementById('resultTitle')
+      const sub     = document.getElementById('resultSub')
+      const fields  = document.getElementById('resultFields')
+      const preview = document.getElementById('previewWrap')
+      const docBox  = document.getElementById('docPreview')
+      const chips   = document.getElementById('resultChips')
 
       if (res.ok && data.status === 'sukses') {
-        headerBar.className = 'result-header-bar valid'
-        icon.className = 'status-icon valid'
+        bar.className   = 'result-bar valid'
+        icon.className  = 'status-icon valid'
         icon.textContent = '+'
-        title.className = 'status-title valid'
+        title.className  = 'status-title valid'
         title.textContent = 'Ijazah terverifikasi'
-        sub.textContent = 'Data ditemukan langsung dari blockchain Ethereum'
+        sub.textContent   = 'Data diambil langsung dari blockchain Ethereum'
 
         fields.innerHTML = `
           <div class="result-field">
             <label>Nama Mahasiswa</label>
-            <div class="result-value highlight">${esc(data.nama_mahasiswa)}</div>
+            <div class="rval accent">${esc(data.nama)}</div>
           </div>
           <div class="result-field">
             <label>NIM</label>
-            <div class="result-value highlight">${esc(String(data.nim))}</div>
+            <div class="rval accent">${esc(data.nim)}</div>
           </div>
           <div class="result-field">
-            <label>Universitas</label>
-            <div class="result-value">Universitas Muhammadiyah Cirebon</div>
+            <label>Institusi</label>
+            <div class="rval">${esc(data.institusi || 'Universitas Muhammadiyah Cirebon')}</div>
           </div>
           <div class="result-field">
-            <label>Tanggal Terbit</label>
-            <div class="result-value">${esc(data.tanggal_terbit || '—')}</div>
-          </div>
-          <div class="result-field" style="grid-column:1/-1;">
             <label>Wallet Pemilik</label>
-            <div class="result-value mono">${esc(data.wallet_mahasiswa)}</div>
+            <div class="rval mono">${esc(data.pemilik)}</div>
           </div>
         `
 
-        // Preview dokumen
-        if (data.ipfs_foto) {
-          previewWrap.style.display = 'block'
-          const url = IPFS_GW + data.ipfs_foto
-          preview.innerHTML = `<iframe src="${url}" title="Dokumen Ijazah ${esc(data.nama_mahasiswa)}"></iframe>`
+        // Preview dokumen dari doc_url
+        if (data.doc_url) {
+          preview.style.display = 'block'
+          const ext = data.doc_url.split('.').pop().toLowerCase()
+          if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+            docBox.innerHTML = `<img src="${esc(data.doc_url)}" alt="Dokumen Ijazah ${esc(data.nama)}" />`
+          } else {
+            docBox.innerHTML = `<iframe src="${esc(data.doc_url)}" title="Dokumen Ijazah ${esc(data.nama)}"></iframe>`
+          }
         } else {
-          previewWrap.style.display = 'none'
+          preview.style.display = 'none'
         }
 
         chips.innerHTML = `
-          ${data.ipfs_foto ? `<a href="${IPFS_GW}${esc(data.ipfs_foto)}" target="_blank" class="chip primary">Buka dokumen IPFS</a>` : ''}
-          <a href="${ETHERSCAN_ADDR}" target="_blank" class="chip">Lihat contract Etherscan</a>
+          ${data.doc_url ? `<a href="${esc(data.doc_url)}" target="_blank" class="chip accent">Buka dokumen IPFS</a>` : ''}
+          ${data.etherscan_url ? `<a href="${esc(data.etherscan_url)}" target="_blank" class="chip">Lihat di Etherscan</a>` : ''}
         `
 
       } else {
-        headerBar.className = 'result-header-bar invalid'
-        icon.className = 'status-icon invalid'
+        bar.className   = 'result-bar invalid'
+        icon.className  = 'status-icon invalid'
         icon.textContent = 'x'
-        title.className = 'status-title invalid'
+        title.className  = 'status-title invalid'
         title.textContent = 'Ijazah tidak ditemukan'
-        sub.textContent = 'NIM ini belum terdaftar atau data tidak valid'
-        fields.innerHTML = `<div class="result-value" style="color: var(--text-muted); grid-column:1/-1; font-size:13px;">${esc(data.pesan || 'Tidak ada data untuk NIM ini.')}</div>`
-        previewWrap.style.display = 'none'
+        sub.textContent   = 'NIM ini belum terdaftar atau data tidak valid'
+        fields.innerHTML  = `
+          <div style="grid-column:1/-1; font-size:13px; color:var(--text-muted);">
+            ${esc(data.pesan || 'Tidak ada data untuk NIM ini.')}
+          </div>`
+        preview.style.display = 'none'
         chips.innerHTML = ''
       }
 
     } catch (err) {
+      const panel = document.getElementById('resultPanel')
       panel.style.display = 'block'
-      document.getElementById('resultHeaderBar').className = 'result-header-bar invalid'
+      document.getElementById('resultBar').className = 'result-bar invalid'
       document.getElementById('resultIcon').className = 'status-icon invalid'
       document.getElementById('resultIcon').textContent = 'x'
       document.getElementById('resultTitle').className = 'status-title invalid'
       document.getElementById('resultTitle').textContent = 'Tidak dapat terhubung ke server'
       document.getElementById('resultSub').textContent = 'Pastikan server backend sudah berjalan di localhost:5000'
-      document.getElementById('resultFields').innerHTML = `<div style="color:var(--text-muted);font-size:13px;grid-column:1/-1;">${esc(err.message)}</div>`
-      document.getElementById('docPreviewWrap').style.display = 'none'
+      document.getElementById('resultFields').innerHTML = `
+        <div style="grid-column:1/-1;font-size:13px;color:var(--text-muted);">${esc(err.message)}</div>`
+      document.getElementById('previewWrap').style.display = 'none'
       document.getElementById('resultChips').innerHTML = ''
+
     } finally {
       btn.disabled = false
       btn.textContent = 'Cek Keaslian Ijazah'
     }
   }
 
-  document.getElementById('v-nim').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doVerify()
-  })
-
-  /* --------------------------------------------------
-     Load stats dari backend
-  -------------------------------------------------- */
+  // ─── Stats ──────────────────────────────────────────────
   async function loadStats() {
     try {
-      const res  = await fetch(API + '/api/stats', { signal: AbortSignal.timeout(5000) })
+      const res  = await fetch(API + '/api/stats', {
+        signal: AbortSignal.timeout(5000)
+      })
       const data = await res.json()
       document.getElementById('statTotal').textContent = data.total_ijazah ?? '—'
       const addr = data.kontrak || ''
-      document.getElementById('statAddr').textContent = addr
-        ? addr.slice(0, 6) + '...' + addr.slice(-4)
-        : '—'
+      document.getElementById('statAddr').textContent =
+        addr ? addr.slice(0,6) + '...' + addr.slice(-4) : '—'
     } catch {
       document.getElementById('networkLabel').textContent = 'Backend offline'
+      document.getElementById('statTotal').textContent = '—'
     }
   }
 
